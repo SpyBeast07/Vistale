@@ -1,50 +1,79 @@
-# Welcome to your Expo app 👋
+# Vistale Tourism WebAR 🌍✨
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Vistale is a production-grade Augmented Reality application for tourism, designed to bring physical postcards and landmarks to life using **WebAR (MindAR + Three.js)** integrated into a **React Native Expo** application.
 
-## Get started
+## 🚀 Architecture Overview
 
-1. Install dependencies
+This project uses a hybrid architecture for maximum flexibility and performance:
 
-   ```bash
-   npm install
-   ```
+- **Host App (React Native Expo)**: Manages UI, user authentication, profile, and the scanning interface.
+- **AR Engine (Standalone WebAR)**: A high-performance, modular AR engine bundled with Vite. It runs inside a native WebView with a bi-directional communication bridge.
+- **Communication Bridge**: Custom messaging protocol for `TARGET_FOUND` and `TARGET_LOST` events, allowing the native app to react to AR interactions.
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## 🛠️ Tech Stack
 
-In the output, you'll find options to open the app in a
+- **Native**: React Native, Expo, Expo Router, Lucide Icons.
+- **AR Core**: MindAR (Image Tracking), Three.js (3D Rendering).
+- **Bundler**: Vite (for the AR Engine).
+- **Bridge**: `react-native-webview`.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 🏗️ Project Structure
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```text
+.
+├── src/                    # React Native Expo Source
+│   ├── app/                # Expo Router screens
+│   ├── components/         # Shared native components (e.g., WebARView)
+│   └── screens/            # Native screen implementations (ScanScreen)
+├── web-ar/                 # Standalone WebAR Engine (Vite project)
+│   ├── src/                # Modular AR Managers & Services
+│   │   ├── core/           # AR Tracker & Asset Loader
+│   │   └── managers/       # Overlay Manager (Scaling, Lifecycle)
+│   └── public/             # AR Assets (.mind files, videos, textures)
+└── README.md
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## 🏁 Quick Start
 
-To learn more about developing your project with Expo, look at the following resources:
+### 1. Start the WebAR Engine
+```bash
+cd web-ar
+npm install
+npm run dev
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### 2. Expose the Engine (For physical device testing)
+Since WebAR requires a **Secure Context (HTTPS)**, use a tunnel:
+```bash
+# Using Cloudflare (No account needed)
+npx cloudflared tunnel --url http://localhost:5173
+```
+*Copy the `https://...` URL provided.*
 
-## Join the community
+### 3. Start the Native App
+1. Open `src/screens/ScanScreen.tsx`.
+2. Update `WEB_AR_URL` with your tunnel address.
+3. Run:
+```bash
+npx expo start
+```
+4. Scan the QR code with **Expo Go** on your Android or iOS device.
 
-Join our community of developers creating universal apps.
+---
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 📸 Image Tracking Pipeline
+MindAR requires pre-compiled `.mind` files for tracking.
+1. Upload your image to the [MindAR Compiler](https://hiukim.github.io/mind-ar-js-doc/tools/compile).
+2. Download the `.mind` file and place it in `web-ar/public/targets/`.
+3. Add the entry to `web-ar/src/config/ar-config.js`.
+
+---
+
+## 📄 License
+© 2026 Eurobliz Internship Project.

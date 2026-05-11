@@ -1,25 +1,58 @@
-# Vistale WebAR - Getting Started
+# Vistale WebAR Engine ⚡️
 
-You have added your assets:
-- Image: `/public/images/tiffin.jpg`
-- Video: `/public/videos/tiffin.mp4`
+A modular, production-ready WebAR engine built with **MindAR** and **Three.js**, designed for seamless integration into native mobile applications.
 
-### 1. Compile the Image Target
-MindAR does not use JPG files directly for tracking. You must convert `tiffin.jpg` into a `.mind` file.
+## ✨ Key Features
+- **Auto-Start**: Instant camera activation on page load.
+- **Resource Management**: Dynamic preloading and auto-disposal of video textures to prevent memory leaks on mobile devices.
+- **Bi-directional Bridge**: Real-time messaging to React Native via `window.ReactNativeWebView`.
+- **Config-Driven**: Add new AR targets by simply updating `src/config/ar-config.js`.
+- **Performance Optimized**: Built-in smoothing, asset caching, and mobile-first rendering.
 
-1. Go to the [Official MindAR Compiler](https://hiukim.github.io/mind-ar-js-doc/tools/compile).
-2. Upload your `tiffin.jpg`.
-3. Click **Compile** and wait.
-4. Download the `targets.mind` file.
-5. Rename it to `tiffin.mind` and place it in the `web-ar/public/targets/` folder.
+---
 
-### 2. Run the Development Server
-1. Open your terminal in the `web-ar` directory.
-2. Run `npm run dev`.
-3. Open the URL in your browser.
-4. Click **START AR EXPERIENCE**.
-5. Point your camera at the physical postcard (or display the image on another screen).
+## 🏗️ Architecture
 
-### 3. Troubleshooting
-- **HTTPS Required**: Camera access requires HTTPS. When testing locally, `localhost` is usually fine, but if you test on a mobile phone over the network, you'll need to use a tool like `ngrok` or host it with HTTPS.
-- **Console Logs**: Open the browser console (F12) to see tracking events like `[LOG] Target Found`.
+- **ARTracker.js**: Hardened wrapper for MindAR lifecycle.
+- **AssetLoader.js**: Promise-based asset preloader with browser-restriction bypassing (autoplay unlock).
+- **OverlayManager.js**: Factory for creating and managing AR overlays (videos, 3D models).
+- **VideoOverlay.js**: Efficient video mesh implementation with lifecycle hooks.
+
+---
+
+## 🛠️ Development
+
+### Setup
+```bash
+npm install
+npm run dev
+```
+
+### Adding New Postcards
+1. **Target**: Convert your JPG to `.mind` using the [MindAR Compiler](https://hiukim.github.io/mind-ar-js-doc/tools/compile).
+2. **Assets**: Place the `.mind` target in `/public/targets/` and your video in `/public/videos/`.
+3. **Config**: Add an entry to `src/config/ar-config.js`:
+```javascript
+{
+    id: "your_id",
+    title: "Display Name",
+    target: "/targets/your_file.mind",
+    video: "/videos/your_video.mp4",
+    options: { scale: 1.2 }
+}
+```
+
+---
+
+## 🔒 Secure Context & Tunneling
+WebAR requires **HTTPS** for camera access. During development:
+- Use **Cloudflare Tunnel**: `npx cloudflared tunnel --url http://localhost:5173`.
+- Use **USB Port Forwarding** (Android): `adb reverse tcp:5173 tcp:5173`.
+
+---
+
+## 📦 Production Build
+```bash
+npm run build
+```
+The output will be in the `dist/` folder. Host these files on any static HTTPS server (Vercel, S3, MinIO) and point the React Native WebView to your production URL.
