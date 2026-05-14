@@ -1,23 +1,56 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { DarkTheme, ThemeProvider } from '@react-navigation/native';
+import { Tabs } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
+import React from 'react';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Colors } from '@/constants/theme';
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
-
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+export default function TabLayout() {
+  const colors = Colors.dark;
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      </Stack>
-      <StatusBar style="auto" />
+    <ThemeProvider value={DarkTheme}>
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: colors.text,
+          tabBarInactiveTintColor: colors.textSecondary,
+          tabBarStyle: {
+            backgroundColor: '#121316',
+            borderTopColor: '#1C1D21',
+            height: 60,
+            paddingBottom: 8,
+            paddingTop: 8,
+          },
+          headerShown: false,
+        }}
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: 'Home',
+            tabBarIcon: ({ color, size }) => (
+              <SymbolView
+                name="house.fill"
+                size={size ?? 22}
+                tintColor={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="scan"
+          options={{
+            title: 'Scan',
+            tabBarIcon: ({ color, size }) => (
+              <SymbolView
+                name="camera.fill"
+                size={size ?? 22}
+                tintColor={color}
+              />
+            ),
+          }}
+        />
+      </Tabs>
     </ThemeProvider>
   );
 }

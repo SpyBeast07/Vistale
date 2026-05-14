@@ -1,79 +1,56 @@
-# Vistale Tourism WebAR 🌍✨
+# Welcome to your Expo app 👋
 
-Vistale is a production-grade Augmented Reality application for tourism, designed to bring physical postcards and landmarks to life using **WebAR (MindAR + Three.js)** integrated into a **React Native Expo** application.
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## 🚀 Architecture Overview
+## Get started
 
-This project uses a hybrid architecture for maximum flexibility and performance:
+1. Install dependencies
 
-- **Host App (React Native Expo)**: Manages UI, user authentication, profile, and the scanning interface.
-- **AR Engine (Standalone WebAR)**: A high-performance, modular AR engine bundled with Vite. It runs inside a native WebView with a bi-directional communication bridge.
-- **Communication Bridge**: Custom messaging protocol for `TARGET_FOUND` and `TARGET_LOST` events, allowing the native app to react to AR interactions.
+   ```bash
+   npm install
+   ```
 
----
+2. Start the app
 
-## 🛠️ Tech Stack
+   ```bash
+   npx expo start
+   ```
 
-- **Native**: React Native, Expo, Expo Router, Lucide Icons.
-- **AR Core**: MindAR (Image Tracking), Three.js (3D Rendering).
-- **Bundler**: Vite (for the AR Engine).
-- **Bridge**: `react-native-webview`.
+In the output, you'll find options to open the app in a
 
----
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-## 🏗️ Project Structure
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-```text
-.
-├── src/                    # React Native Expo Source
-│   ├── app/                # Expo Router screens
-│   ├── components/         # Shared native components (e.g., WebARView)
-│   └── screens/            # Native screen implementations (ScanScreen)
-├── web-ar/                 # Standalone WebAR Engine (Vite project)
-│   ├── src/                # Modular AR Managers & Services
-│   │   ├── core/           # AR Tracker & Asset Loader
-│   │   └── managers/       # Overlay Manager (Scaling, Lifecycle)
-│   └── public/             # AR Assets (.mind files, videos, textures)
-└── README.md
-```
+## Get a fresh project
 
----
+When you're ready, run:
 
-## 🏁 Quick Start
-
-### 1. Start the WebAR Engine
 ```bash
-cd web-ar
-npm install
-npm run dev
+npm run reset-project
 ```
 
-### 2. Expose the Engine (For physical device testing)
-Since WebAR requires a **Secure Context (HTTPS)**, use a tunnel:
-```bash
-# Using Cloudflare (No account needed)
-npx cloudflared tunnel --url http://localhost:5173
-```
-*Copy the `https://...` URL provided.*
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
-### 3. Start the Native App
-1. Open `src/screens/ScanScreen.tsx`.
-2. Update `WEB_AR_URL` with your tunnel address.
-3. Run:
-```bash
-npx expo start
-```
-4. Scan the QR code with **Expo Go** on your Android or iOS device.
+### Other setup steps
 
----
+- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
+- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
+- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
 
-## 📸 Image Tracking Pipeline
-MindAR requires pre-compiled `.mind` files for tracking.
-1. Upload your image to the [MindAR Compiler](https://hiukim.github.io/mind-ar-js-doc/tools/compile).
-2. Download the `.mind` file and place it in `web-ar/public/targets/`.
-3. Add the entry to `web-ar/src/config/ar-config.js`.
+## Learn more
 
----
+To learn more about developing your project with Expo, look at the following resources:
 
-## 📄 License
-© 2026 Eurobliz Internship Project.
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+
+## Join the community
+
+Join our community of developers creating universal apps.
+
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.

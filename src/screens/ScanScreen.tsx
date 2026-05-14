@@ -1,162 +1,371 @@
+import { router } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Camera } from 'expo-camera';
-import { WebARView } from '../components/WebARView';
-import { Ionicons } from '@expo/vector-icons';
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withRepeat, 
+  withTiming, 
+  Easing 
+} from 'react-native-reanimated';
 
-/**
- * ScanScreen
- * 
- * Production-grade scanning interface.
- * Handles permission flow and displays the WebAR engine.
- */
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
+import { BottomTabInset, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
-import Constants from 'expo-constants';
+type ScanStatus = 'IDLE' | 'SCANNING' | 'SUCCESS';
 
-const debuggerHost = Constants.expoConfig?.hostUri;
-const localhost = debuggerHost ? debuggerHost.split(':')[0] : 'localhost';
-const WEB_AR_URL = `https://divine-december-analyst-sensitive.trycloudflare.com`;
+export default function ScanScreen() {
+  const theme = useTheme();
+  const [status, setStatus] = useState<ScanStatus>('IDLE');
+  const [scanResult, setScanResult] = useState<string>('');
 
-export const ScanScreen: React.FC = ({ navigation }: any) => {
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [arStatus, setArStatus] = useState('Position your phone over a postcard');
- 
-  // Request permissions on mount
+  // Continuous sweeping laser shared value
+  const laserPosition = useSharedValue(0);
+
   useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-    })();
+    laserPosition.value = withRepeat(
+      withTiming(1, { duration: 1800, easing: Easing.inOut(Easing.ease) }),
+      -1, // Infinite
+      true // Ping-pong direction
+    );
   }, []);
 
-  const handleAREvent = (event: string, payload: any) => {
-    switch (event) {
-      case 'TARGET_FOUND':
-        setArStatus(`Detected: ${payload.title || 'Postcard'}`);
-        // Here you could trigger haptics or show a UI popup
-        break;
-      case 'TARGET_LOST':
-        setArStatus('Searching for postcard...');
-        break;
-      case 'ERROR':
-        setArStatus(`AR Error: ${payload.message}`);
-        break;
-    }
+  const animatedLaserStyle = useAnimatedStyle(() => {
+    return {
+      top: `${laserPosition.value * 100}%`,
+    };
+  });
+
+  const handleSimulateScan = () => {
+    if (status === 'SCANNING') return;
+
+    setStatus('SCANNING');
+    setScanResult('');
+
+    // Simulate edge model execution latency
+    setTimeout(() => {
+      setStatus('SUCCESS');
+      setScanResult('Vistale Visual Node #8904 - Verified');
+    }, 1800);
   };
 
-  if (hasPermission === null) {
-    return <View style={styles.center}><Text>Requesting camera permission...</Text></View>;
-  }
-
-  if (hasPermission === false) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.errorText}>No access to camera</Text>
-        <TouchableOpacity style={styles.btn} onPress={() => navigation.goBack()}>
-          <Text style={styles.btnText}>Go Back</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  const handleReset = () => {
+    setStatus('IDLE');
+    setScanResult('');
+  };
 
   return (
-    <View style={styles.container}>
-      {/* 1. The WebAR Engine */}
-      <WebARView 
-        url={WEB_AR_URL}
-        onEvent={handleAREvent}
-        onError={(err) => setArStatus(`Load Error: ${err}`)}
-      />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.mainContainer}>
 
-      {/* 2. UI Overlays (Native React Native) */}
-      <SafeAreaView style={styles.uiOverlay}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
-            <Ionicons name="close" size={28} color="white" />
-          </TouchableOpacity>
-          <Text style={styles.title}>VISTALE SCAN</Text>
-          <View style={{ width: 40 }} /> 
-        </View>
-
-        <View style={styles.footer}>
-          <View style={styles.statusBadge}>
-            <Text style={styles.statusText}>{arStatus}</Text>
+          {/* Minimal Header */}
+          <View style={styles.header}>
+            <Pressable onPress={() => router.back()} style={styles.backButton}>
+              <SymbolView 
+                name="chevron.left" 
+                size={22} 
+                tintColor="#F3F4F6" 
+              />
+            </Pressable>
+            <ThemedText type="code" style={styles.headerTitle}>
+              VIEWPORT SCANNER
+            </ThemedText>
+            <View style={styles.placeholder} />
           </View>
+
+          {/* Viewfinder Scan Area */}
+          <View style={[styles.viewportCard, { backgroundColor: theme.backgroundElement, borderColor: '#292B30' }]}>
+            
+            <View 
+              style={[
+                styles.viewfinder, 
+                status === 'SCANNING' && styles.viewfinderScanning,
+                status === 'SUCCESS' && styles.viewfinderSuccess
+              ]}
+            >
+              {/* Corner Viewfinder brackets */}
+              <View style={[styles.corner, styles.topLeft, status === 'SUCCESS' && styles.cornerSuccess]} />
+              <View style={[styles.corner, styles.topRight, status === 'SUCCESS' && styles.cornerSuccess]} />
+              <View style={[styles.corner, styles.bottomLeft, status === 'SUCCESS' && styles.cornerSuccess]} />
+              <View style={[styles.corner, styles.bottomRight, status === 'SUCCESS' && styles.cornerSuccess]} />
+
+              {/* Sweeping Laser (scanning state only) */}
+              {status === 'SCANNING' && (
+                <Animated.View style={[styles.laserLine, animatedLaserStyle]} />
+              )}
+
+              {/* Central Indicator */}
+              {status === 'IDLE' && (
+                <SymbolView 
+                  name="viewfinder" 
+                  size={36} 
+                  tintColor="#8E9AA8" 
+                />
+              )}
+              {status === 'SCANNING' && (
+                <ActivityIndicator size="large" color="#34C759" />
+              )}
+              {status === 'SUCCESS' && (
+                <SymbolView 
+                  name="checkmark.circle.fill" 
+                  size={40} 
+                  tintColor="#34C759" 
+                />
+              )}
+            </View>
+
+            {/* Prompt overlay banner */}
+            <View style={styles.promptWrapper}>
+              {status === 'IDLE' && (
+                <ThemedText type="small" themeColor="textSecondary">
+                  Position object inside the brackets to begin
+                </ThemedText>
+              )}
+              {status === 'SCANNING' && (
+                <ThemedText type="small" style={styles.scanningText}>
+                  Processing frame tensors...
+                </ThemedText>
+              )}
+              {status === 'SUCCESS' && (
+                <ThemedText type="small" style={styles.successText}>
+                  Verification Completed
+                </ThemedText>
+              )}
+            </View>
+
+          </View>
+
+          {/* Bottom Custom HUD Control Panel */}
+          <View style={[styles.controlPanelCard, { backgroundColor: theme.backgroundElement, borderColor: '#292B30' }]}>
+            
+            <View style={styles.metadataWrapper}>
+              <View style={styles.statusRow}>
+                <SymbolView name="cpu" size={14} tintColor="#8E9AA8" />
+                <ThemedText type="small" themeColor="textSecondary">
+                  Network: <ThemedText type="smallBold">EdgeOCR-v2.1</ThemedText>
+                </ThemedText>
+              </View>
+
+              {status === 'SUCCESS' ? (
+                <View style={styles.resultBox}>
+                  <SymbolView name="checkmark.seal.fill" size={16} tintColor="#34C759" />
+                  <ThemedText style={styles.resultValueText}>
+                    {scanResult}
+                  </ThemedText>
+                </View>
+              ) : (
+                <ThemedText type="small" themeColor="textSecondary" style={styles.statusInfoText}>
+                  {status === 'SCANNING' ? 'Executing convolutional tensor flow...' : 'Awaiting optical target capture.'}
+                </ThemedText>
+              )}
+            </View>
+
+            {status === 'SUCCESS' ? (
+              <Pressable 
+                onPress={handleReset}
+                style={({ pressed }) => [
+                  styles.panelButton, 
+                  { 
+                    backgroundColor: '#121316', 
+                    borderColor: '#292B30', 
+                    borderWidth: 1, 
+                    opacity: pressed ? 0.8 : 1 
+                  }
+                ]}
+              >
+                <ThemedText style={styles.panelButtonText}>
+                  Clear & Scan Next
+                </ThemedText>
+              </Pressable>
+            ) : (
+              <Pressable 
+                onPress={handleSimulateScan}
+                disabled={status === 'SCANNING'}
+                style={({ pressed }) => [
+                  styles.panelButton, 
+                  { 
+                    backgroundColor: theme.text, 
+                    opacity: (status === 'SCANNING') ? 0.5 : (pressed ? 0.9 : 1),
+                    transform: [{ scale: pressed ? 0.98 : 1 }]
+                  }
+                ]}
+              >
+                <ThemedText style={[styles.panelButtonText, { color: theme.background }]}>
+                  {status === 'SCANNING' ? 'Running Model...' : 'Simulate Visual Scan'}
+                </ThemedText>
+              </Pressable>
+            )}
+          </View>
+
         </View>
-      </SafeAreaView>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#000',
   },
-  center: {
+  scrollView: {
     flex: 1,
-    justifyContent: 'center',
+  },
+  scrollContent: {
+    flexGrow: 1,
     alignItems: 'center',
-    backgroundColor: '#000',
+    paddingBottom: BottomTabInset + Spacing.four,
   },
-  uiOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'space-between',
-    pointerEvents: 'box-none',
+  mainContainer: {
+    width: '100%',
+    maxWidth: 460,
+    paddingHorizontal: Spacing.four,
+    gap: Spacing.four,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    pointerEvents: 'auto',
+    paddingVertical: Spacing.three,
+    marginTop: Spacing.two,
   },
-  closeBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  backButton: {
+    paddingVertical: Spacing.one,
+    paddingRight: Spacing.four,
   },
-  title: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+  headerTitle: {
+    fontSize: 12,
+    fontWeight: '700',
     letterSpacing: 2,
   },
-  footer: {
+  placeholder: {
+    width: 24,
+  },
+  viewportCard: {
+    borderRadius: 24,
+    borderWidth: 1,
+    minHeight: 340,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 40,
-    pointerEvents: 'none',
+    position: 'relative',
+    overflow: 'hidden',
   },
-  statusBadge: {
-    backgroundColor: 'rgba(255, 71, 87, 0.9)',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
+  viewfinder: {
+    width: 160,
+    height: 160,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
   },
-  statusText: {
-    color: '#fff',
+  viewfinderScanning: {
+    transform: [{ scale: 1.02 }],
+  },
+  viewfinderSuccess: {
+    transform: [{ scale: 1.0 }],
+  },
+  corner: {
+    position: 'absolute',
+    width: 18,
+    height: 18,
+    borderColor: '#8E9AA8',
+    borderWidth: 0,
+  },
+  cornerSuccess: {
+    borderColor: '#34C759',
+  },
+  topLeft: {
+    top: 0,
+    left: 0,
+    borderTopWidth: 2,
+    borderLeftWidth: 2,
+  },
+  topRight: {
+    top: 0,
+    right: 0,
+    borderTopWidth: 2,
+    borderRightWidth: 2,
+  },
+  bottomLeft: {
+    bottom: 0,
+    left: 0,
+    borderBottomWidth: 2,
+    borderLeftWidth: 2,
+  },
+  bottomRight: {
+    bottom: 0,
+    right: 0,
+    borderBottomWidth: 2,
+    borderRightWidth: 2,
+  },
+  laserLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: '#34C759',
+    shadowColor: '#34C759',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  promptWrapper: {
+    position: 'absolute',
+    bottom: Spacing.four,
+    alignItems: 'center',
+  },
+  scanningText: {
+    color: '#F3F4F6',
     fontWeight: '600',
+  },
+  successText: {
+    color: '#34C759',
+    fontWeight: '700',
+  },
+  controlPanelCard: {
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: Spacing.four,
+    gap: Spacing.three,
+  },
+  metadataWrapper: {
+    gap: Spacing.two,
+    minHeight: 48,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one,
+  },
+  resultBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one,
+  },
+  resultValueText: {
     fontSize: 14,
+    fontWeight: '700',
+    color: '#34C759',
   },
-  errorText: {
-    color: '#ff4757',
-    marginBottom: 20,
+  statusInfoText: {
+    fontSize: 13,
   },
-  btn: {
-    padding: 15,
-    backgroundColor: '#fff',
-    borderRadius: 10,
+  panelButton: {
+    height: 50,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  btnText: {
-    color: '#000',
-    fontWeight: 'bold',
-  }
+  panelButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
 });
