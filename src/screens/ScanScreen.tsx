@@ -11,6 +11,7 @@ import Animated, {
   Easing 
 } from 'react-native-reanimated';
 
+import { CameraView } from '@/components/camera-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, Spacing } from '@/constants/theme';
@@ -84,6 +85,8 @@ export default function ScanScreen() {
 
           {/* Viewfinder Scan Area */}
           <View style={[styles.viewportCard, { backgroundColor: theme.backgroundElement, borderColor: '#292B30' }]}>
+            {/* Live Camera Stream / Web Fallback Mockup */}
+            <CameraView isActive={status === 'SCANNING' || status === 'IDLE'} />
             
             <View 
               style={[

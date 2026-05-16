@@ -8,7 +8,11 @@
     "scheme": "vistale",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Vistale needs access to your camera to recognize real-time visual feeds."
+      },
+      "bundleIdentifier": "com.spybeast.Vistale"
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +22,10 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.spybeast.Vistale"
+      "package": "com.spybeast.Vistale",
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
       "output": "static",
@@ -37,7 +44,14 @@
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Vistale to access your camera to recognize real-time visual feeds.",
+          "recordAudioAndroid": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
