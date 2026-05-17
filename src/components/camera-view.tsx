@@ -58,7 +58,7 @@ export function CameraView({ isActive }: CameraViewProps) {
     );
   }
 
-  // 3. Render Power-Saving Suspended State
+  // 3. Render Suspended / Inactive State (Power-saving)
   if (!isActive) {
     return (
       <View style={[styles.centeredContainer, { backgroundColor: '#07080a' }]}>

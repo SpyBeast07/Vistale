@@ -1,56 +1,53 @@
-# Welcome to your Expo app 👋
+# 🏔️ Vistale — Immersive Tourism AR Postcard Discovery
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Welcome to **Vistale**, a lightweight, high-performance, and visually stunning Augmented Reality (AR) discovery application designed for the modern tourism industry. 
 
-## Get started
+Vistale transforms traditional paper travel postcards into interactive digital portals. By pointing their smartphone lens at an activated postcard, tourists can immediately unlock immersive travel videos, audio-guided tours, and local commentary—rendered right on top of their physical viewports!
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## ✨ Primary Features & Capabilities
 
-2. Start the app
+- **📷 Real-Time Camera Viewfinder:** Powered natively by `expo-camera` to guarantee immediate, buttery-smooth 60 FPS viewport rendering directly within standard **Expo Go** sandboxes and secure browsers.
+- **✨ Immersive AR travel Portals:** Tapping on the active camera viewfinder bracket simulates travel postcard marker recognition, overlaying a gorgeous glassmorphic **Travel Video Portal Card** on top of the live camera feed without interrupting the background stream!
+- **🎨 Premium Off-Dark Design System:** Designed with an elegant, curated slate-charcoal color palette (`#121316` backgrounds, `#1C1D21` cards, `#292B30` borders, `#34C759` active emerald highlights) for maximum visual excellence and responsiveness.
+- **⚙️ Decoupled Vision Framework:** Features a dedicated, thread-isolated C++ worklet folder (`src/vision/processors/`) ready to support custom high-performance frame-buffer processing in later compile phases.
 
-   ```bash
-   npx expo start
-   ```
+---
 
-In the output, you'll find options to open the app in a
+## 📁 Project Architecture & Layout
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+src/
+  ├── app/                  # File-based routing (Expo Router index & scan entrypoints)
+  ├── components/           # Reusable UI & viewports (camera-view modules)
+  ├── constants/            # Slate-charcoal design tokens & Spacings
+  ├── hooks/                # Global theme & typography adapters
+  ├── screens/              # Decoupled Page components (HomeScreen & ScanScreen)
+  └── vision/
+      └── processors/       # Isolated real-time C++ worklets & frame structures
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-### Other setup steps
+## 🚀 Getting Started
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+### 1. Install Dependencies
+```bash
+npm install
+```
 
-## Learn more
+### 2. Start the App
+```bash
+npx expo start
+```
+Scan the Metro QR code on your phone using your **Expo Go** application—**your camera will immediately light up, request permissions, and keep scanning flawlessly!**
 
-To learn more about developing your project with Expo, look at the following resources:
+---
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## 📱 Interactive Postcard Scan Simulator
 
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+1. Go to the **Scan** tab. Your camera stream is always active.
+2. Tap inside the **glowing neon-green brackets** to simulate pointing your lens at a postcard.
+3. Watch the beautiful glassmorphic **Amalfi Coast AR Portal** open, allowing tourists to stream the travel video and access audio commentaries in place!
+4. Tap **Close Experience** or **Scan Another Postcard** to immediately return to continuous postcard scanning!

@@ -21,7 +21,7 @@ type ScanStatus = 'IDLE' | 'SCANNING' | 'SUCCESS';
 
 export default function ScanScreen() {
   const theme = useTheme();
-  const [status, setStatus] = useState<ScanStatus>('IDLE');
+  const [status, setStatus] = useState<ScanStatus>('SCANNING');
   const [scanResult, setScanResult] = useState<string>('');
 
   // Continuous sweeping laser shared value
@@ -41,21 +41,8 @@ export default function ScanScreen() {
     };
   });
 
-  const handleSimulateScan = () => {
-    if (status === 'SCANNING') return;
-
-    setStatus('SCANNING');
-    setScanResult('');
-
-    // Simulate edge model execution latency
-    setTimeout(() => {
-      setStatus('SUCCESS');
-      setScanResult('Vistale Visual Node #8904 - Verified');
-    }, 1800);
-  };
-
   const handleReset = () => {
-    setStatus('IDLE');
+    setStatus('SCANNING');
     setScanResult('');
   };
 
@@ -85,62 +72,78 @@ export default function ScanScreen() {
 
           {/* Viewfinder Scan Area */}
           <View style={[styles.viewportCard, { backgroundColor: theme.backgroundElement, borderColor: '#292B30' }]}>
-            {/* Live Camera Stream / Web Fallback Mockup */}
-            <CameraView isActive={status === 'SCANNING' || status === 'IDLE'} />
+            {/* Live Camera Stream / Web Fallback Mockup (ALWAYS active!) */}
+            <CameraView isActive={true} />
             
-            <View 
-              style={[
-                styles.viewfinder, 
-                status === 'SCANNING' && styles.viewfinderScanning,
-                status === 'SUCCESS' && styles.viewfinderSuccess
-              ]}
-            >
-              {/* Corner Viewfinder brackets */}
-              <View style={[styles.corner, styles.topLeft, status === 'SUCCESS' && styles.cornerSuccess]} />
-              <View style={[styles.corner, styles.topRight, status === 'SUCCESS' && styles.cornerSuccess]} />
-              <View style={[styles.corner, styles.bottomLeft, status === 'SUCCESS' && styles.cornerSuccess]} />
-              <View style={[styles.corner, styles.bottomRight, status === 'SUCCESS' && styles.cornerSuccess]} />
+            {status === 'SCANNING' ? (
+              <Pressable 
+                onPress={() => {
+                  setStatus('SUCCESS');
+                  setScanResult('Amalfi Coast, Italy (AR Experience)');
+                }}
+                style={[
+                  styles.viewfinder, 
+                  styles.viewfinderScanning
+                ]}
+              >
+                {/* Corner Viewfinder brackets */}
+                <View style={[styles.corner, styles.topLeft]} />
+                <View style={[styles.corner, styles.topRight]} />
+                <View style={[styles.corner, styles.bottomLeft]} />
+                <View style={[styles.corner, styles.bottomRight]} />
 
-              {/* Sweeping Laser (scanning state only) */}
-              {status === 'SCANNING' && (
+                {/* Sweeping Laser */}
                 <Animated.View style={[styles.laserLine, animatedLaserStyle]} />
-              )}
 
-              {/* Central Indicator */}
-              {status === 'IDLE' && (
-                <SymbolView 
-                  name="viewfinder" 
-                  size={36} 
-                  tintColor="#8E9AA8" 
-                />
-              )}
-              {status === 'SCANNING' && (
+                {/* Central Spinner */}
                 <ActivityIndicator size="large" color="#34C759" />
-              )}
-              {status === 'SUCCESS' && (
-                <SymbolView 
-                  name="checkmark.circle.fill" 
-                  size={40} 
-                  tintColor="#34C759" 
-                />
-              )}
-            </View>
+              </Pressable>
+            ) : (
+              <View style={[StyleSheet.absoluteFillObject, styles.arPortalOverlay]}>
+                <View style={[styles.arMediaCard, { backgroundColor: 'rgba(28, 29, 33, 0.85)', borderColor: '#292B30' }]}>
+                  {/* Destination image with play button overlay */}
+                  <View style={styles.mediaContainer}>
+                    <View style={[styles.mediaPlaceholder, { backgroundColor: '#121316' }]}>
+                      <SymbolView name="play.circle.fill" size={48} tintColor="#34C759" />
+                      <ThemedText style={styles.mediaPlayText}>Playing Immersive AR Video...</ThemedText>
+                    </View>
+                    {/* Live AR badge */}
+                    <View style={styles.arLiveBadge}>
+                      <View style={styles.liveDot} />
+                      <ThemedText style={styles.arLiveText}>AR PORTAL ACTIVE</ThemedText>
+                    </View>
+                  </View>
+
+                  {/* Travel Description metadata */}
+                  <View style={styles.arMetadata}>
+                    <ThemedText type="smallBold" style={styles.arTitle}>
+                      Amalfi Coast, Italy
+                    </ThemedText>
+                    <ThemedText type="small" themeColor="textSecondary" style={styles.arDescription}>
+                      Immersive travel video exploring cliffside villages, historic landmarks, and scenic Mediterranean coastlines.
+                    </ThemedText>
+                  </View>
+                  
+                  {/* Close Portal Button */}
+                  <Pressable 
+                    onPress={handleReset} 
+                    style={({ pressed }) => [
+                      styles.closePortalButton,
+                      { opacity: pressed ? 0.85 : 1 }
+                    ]}
+                  >
+                    <SymbolView name="xmark" size={12} tintColor="#FFFFFF" />
+                    <ThemedText style={styles.closePortalText}>Close Experience</ThemedText>
+                  </Pressable>
+                </View>
+              </View>
+            )}
 
             {/* Prompt overlay banner */}
             <View style={styles.promptWrapper}>
-              {status === 'IDLE' && (
-                <ThemedText type="small" themeColor="textSecondary">
-                  Position object inside the brackets to begin
-                </ThemedText>
-              )}
               {status === 'SCANNING' && (
                 <ThemedText type="small" style={styles.scanningText}>
-                  Processing frame tensors...
-                </ThemedText>
-              )}
-              {status === 'SUCCESS' && (
-                <ThemedText type="small" style={styles.successText}>
-                  Verification Completed
+                  Tap brackets to simulate postcard scan
                 </ThemedText>
               )}
             </View>
@@ -152,27 +155,27 @@ export default function ScanScreen() {
             
             <View style={styles.metadataWrapper}>
               <View style={styles.statusRow}>
-                <SymbolView name="cpu" size={14} tintColor="#8E9AA8" />
+                <SymbolView name="sparkles" size={14} tintColor="#34C759" />
                 <ThemedText type="small" themeColor="textSecondary">
-                  Network: <ThemedText type="smallBold">EdgeOCR-v2.1</ThemedText>
+                  Engine: <ThemedText type="smallBold">Vistale Tourism AR v1.0</ThemedText>
                 </ThemedText>
               </View>
 
               {status === 'SUCCESS' ? (
                 <View style={styles.resultBox}>
-                  <SymbolView name="checkmark.seal.fill" size={16} tintColor="#34C759" />
+                  <SymbolView name="play.rectangle.fill" size={16} tintColor="#34C759" />
                   <ThemedText style={styles.resultValueText}>
                     {scanResult}
                   </ThemedText>
                 </View>
               ) : (
                 <ThemedText type="small" themeColor="textSecondary" style={styles.statusInfoText}>
-                  {status === 'SCANNING' ? 'Executing convolutional tensor flow...' : 'Awaiting optical target capture.'}
+                  Point your camera lens at any Vistale-activated postcard to unlock travel guides, interactive videos, and audio commentary.
                 </ThemedText>
               )}
             </View>
 
-            {status === 'SUCCESS' ? (
+            {status === 'SUCCESS' && (
               <Pressable 
                 onPress={handleReset}
                 style={({ pressed }) => [
@@ -186,24 +189,7 @@ export default function ScanScreen() {
                 ]}
               >
                 <ThemedText style={styles.panelButtonText}>
-                  Clear & Scan Next
-                </ThemedText>
-              </Pressable>
-            ) : (
-              <Pressable 
-                onPress={handleSimulateScan}
-                disabled={status === 'SCANNING'}
-                style={({ pressed }) => [
-                  styles.panelButton, 
-                  { 
-                    backgroundColor: theme.text, 
-                    opacity: (status === 'SCANNING') ? 0.5 : (pressed ? 0.9 : 1),
-                    transform: [{ scale: pressed ? 0.98 : 1 }]
-                  }
-                ]}
-              >
-                <ThemedText style={[styles.panelButtonText, { color: theme.background }]}>
-                  {status === 'SCANNING' ? 'Running Model...' : 'Simulate Visual Scan'}
+                  Scan Another Postcard
                 </ThemedText>
               </Pressable>
             )}
@@ -370,5 +356,98 @@ const styles = StyleSheet.create({
   panelButtonText: {
     fontSize: 15,
     fontWeight: '700',
+  },
+  scanningStatusBadge: {
+    height: 50,
+    borderRadius: 16,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.two,
+  },
+  arPortalOverlay: {
+    backgroundColor: 'rgba(18, 19, 22, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.four,
+  },
+  arMediaCard: {
+    width: '100%',
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: Spacing.three,
+    gap: Spacing.three,
+  },
+  mediaContainer: {
+    width: '100%',
+    height: 140,
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  mediaPlaceholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: Spacing.one,
+  },
+  mediaPlayText: {
+    fontSize: 12,
+    color: '#8E9AA8',
+    fontWeight: '500',
+  },
+  arLiveBadge: {
+    position: 'absolute',
+    top: Spacing.two,
+    left: Spacing.two,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(52, 199, 89, 0.15)',
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.half,
+    borderRadius: 6,
+    borderWidth: 0.5,
+    borderColor: 'rgba(52, 199, 89, 0.4)',
+    gap: Spacing.one,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#34C759',
+  },
+  arLiveText: {
+    fontSize: 8,
+    fontWeight: '700',
+    color: '#34C759',
+    letterSpacing: 1,
+  },
+  arMetadata: {
+    gap: Spacing.half,
+  },
+  arTitle: {
+    fontSize: 15,
+    color: '#F3F4F6',
+  },
+  arDescription: {
+    fontSize: 11,
+    lineHeight: 16,
+  },
+  closePortalButton: {
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 69, 58, 0.15)',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 69, 58, 0.4)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.one,
+  },
+  closePortalText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FF453A',
   },
 });
