@@ -16,6 +16,8 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { detectPostcardContours } from '@/vision/opencv/opencv-processor';
+import { ContourPath } from '@/vision/opencv/types';
 
 type ScanStatus = 'IDLE' | 'SCANNING' | 'SUCCESS';
 
@@ -23,6 +25,7 @@ export default function ScanScreen() {
   const theme = useTheme();
   const [status, setStatus] = useState<ScanStatus>('SCANNING');
   const [scanResult, setScanResult] = useState<string>('');
+  const [detectedContours, setDetectedContours] = useState<ContourPath[]>([]);
 
   // Continuous sweeping laser shared value
   const laserPosition = useSharedValue(0);
@@ -40,6 +43,29 @@ export default function ScanScreen() {
       top: `${laserPosition.value * 100}%`,
     };
   });
+
+  // OpenCV Frame Processing Loop
+  useEffect(() => {
+    if (status === 'SCANNING') {
+      let active = true;
+      const runProcessor = () => {
+        if (!active) return;
+        
+        // Process contour outlines at 60 FPS
+        const analysis = detectPostcardContours(200, 200);
+        setDetectedContours(analysis.contours);
+        
+        requestAnimationFrame(runProcessor);
+      };
+      
+      runProcessor();
+      return () => {
+        active = false;
+      };
+    } else {
+      setDetectedContours([]);
+    }
+  }, [status]);
 
   const handleReset = () => {
     setStatus('SCANNING');
@@ -91,6 +117,30 @@ export default function ScanScreen() {
                 <View style={[styles.corner, styles.topRight]} />
                 <View style={[styles.corner, styles.bottomLeft]} />
                 <View style={[styles.corner, styles.bottomRight]} />
+
+                {/* Edge Contour Overlay */}
+                {detectedContours.map((contour, idx) => {
+                  if (contour.length < 4) return null;
+                  const minX = Math.min(...contour.map(p => p.x));
+                  const maxX = Math.max(...contour.map(p => p.x));
+                  const minY = Math.min(...contour.map(p => p.y));
+                  const maxY = Math.max(...contour.map(p => p.y));
+                  
+                  return (
+                    <View
+                      key={idx}
+                      style={[
+                        styles.contourOverlayFrame,
+                        {
+                          left: minX,
+                          top: minY,
+                          width: maxX - minX,
+                          height: maxY - minY,
+                        }
+                      ]}
+                    />
+                  );
+                })}
 
                 {/* Sweeping Laser */}
                 <Animated.View style={[styles.laserLine, animatedLaserStyle]} />
@@ -449,5 +499,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#FF453A',
+  },
+  contourOverlayFrame: {
+    position: 'absolute',
+    borderWidth: 1.5,
+    borderColor: '#34C759',
+    borderRadius: 12,
+    borderStyle: 'dashed',
+    shadowColor: '#34C759',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 6,
+    elevation: 3,
   },
 });
